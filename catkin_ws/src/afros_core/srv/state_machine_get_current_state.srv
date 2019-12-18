@@ -1,0 +1,4 @@
+identifier requester
+---
+uint32 current_state_id
+bool is_running
