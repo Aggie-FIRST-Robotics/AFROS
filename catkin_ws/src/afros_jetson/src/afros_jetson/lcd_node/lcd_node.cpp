@@ -1,4 +1,4 @@
-#include "afros_core/common_lib.h"
+#include "afros_core/common_lib.hpp"
 #include "ros/ros.h"
 
 #include "afros_jetson/node_names.hpp"

@@ -1,7 +1,7 @@
 #ifndef AFROS_CORE_REGISTRY_H
 #define AFROS_CORE_REGISTRY_H
 
-#include "afros_core/error_val.h"
+#include "afros_core/error_val.hpp"
 
 #include <vector>
 #include <boost/thread/shared_mutex.hpp>

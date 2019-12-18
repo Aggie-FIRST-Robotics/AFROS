@@ -1,5 +1,7 @@
+cmake_minimum_required(VERSION 2.8.3)
+
 set(
-        afros_core_message_files
+        ${PROJECT_NAME}_message_files
 
         connection_broadcast.msg
         connection_pub_sub.msg
@@ -10,4 +12,6 @@ set(
         state_machine_current_state.msg
         state_machine_offline.msg
         state_machine_order.msg
+
+        PARENT_SCOPE
 )

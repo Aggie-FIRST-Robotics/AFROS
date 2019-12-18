@@ -1,11 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(afros_core)
-
-#if($ENV{CLION_IDE})
-#    message("CLion Detected")
-#    set(CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/../../devel;/opt/ros/melodic")
-#endif()
-
 add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
@@ -15,7 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
         roscpp
         message_generation
         actionlib
-        )
+)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -51,17 +45,17 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 # Generate messages in the 'msg' folder
-include(msg/CMakeLists.txt)
+add_subdirectory(msg)
 add_message_files(
         FILES
-        ${afros_core_message_files}
+        ${${PROJECT_NAME}_message_files}
 )
 
 # Generate services in the 'srv' folder
-include(srv/CMakeLists.txt)
+add_subdirectory(srv)
 add_service_files(
         FILES
-        ${afros_core_service_files}
+        ${${PROJECT_NAME}_service_files}
 )
 
 # Generate actions in the 'action' folder
@@ -94,7 +88,7 @@ catkin_package(
 ###########
 ## Build ##
 ###########
-include(src/CMakeLists.txt)
+
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
@@ -102,17 +96,13 @@ include_directories(
         ${catkin_INCLUDE_DIRS}
 )
 
-# Declare a C++ library
-add_library(${PROJECT_NAME} ${${PROJECT_NAME}_common_src})
+add_subdirectory(src)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
 #add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_executable(${PROJECT_NAME}_state_machine_commander_node ${${PROJECT_NAME}_state_machine_commander_src} ${${PROJECT_NAME}_common_src})
-set_target_properties(${PROJECT_NAME}_state_machine_commander_node PROPERTIES OUTPUT_NAME state_machine_commander_node PREFIX "")
-add_dependencies(${PROJECT_NAME}_state_machine_commander_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME}_state_machine_commander_node ${catkin_LIBRARIES})
+
 
 #############
 ## Install ##

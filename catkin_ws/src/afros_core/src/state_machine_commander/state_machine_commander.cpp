@@ -1,8 +1,8 @@
 #include "afros_core/state_machine_offline.h"
-#include "afros_core/common_lib.h"
-#include "afros_core/registry.h"
+#include "afros_core/common_lib.hpp"
+#include "afros_core/registry.hpp"
 
-#include "afros_core/state_machine_commander/state_machine_commander_callbacks.h"
+#include "afros_core/state_machine_commander/state_machine_commander_callbacks.hpp"
 
 int main(int argc, char* argv[]){
     using namespace afros_core;

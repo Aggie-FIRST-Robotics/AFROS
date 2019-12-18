@@ -3,7 +3,7 @@
 
 #include "ros/ros.h"
 
-#include "afros_core/error_val.h"
+#include "afros_core/error_val.hpp"
 
 #include <boost/system/error_code.hpp>
 #include <boost/asio.hpp>

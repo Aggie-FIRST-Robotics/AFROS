@@ -1,8 +1,8 @@
 #ifndef AFROS_CORE_STATE_MACHINE_COMMANDER_CALLBACKS_H
 #define AFROS_CORE_STATE_MACHINE_COMMANDER_CALLBACKS_H
 
-#include "afros_core/topics.h"
-#include "afros_core/registry.h"
+#include "afros_core/topics.hpp"
+#include "afros_core/registry.hpp"
 #include "ros/ros.h"
 
 #include "afros_core/state_machine_broadcast.h"

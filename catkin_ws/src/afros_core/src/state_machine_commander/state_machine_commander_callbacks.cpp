@@ -1,4 +1,4 @@
-#include "afros_core/state_machine_commander/state_machine_commander_callbacks.h"
+#include "afros_core/state_machine_commander/state_machine_commander_callbacks.hpp"
 
 #include <utility>
 

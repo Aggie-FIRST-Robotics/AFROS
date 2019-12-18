@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-add_subdirectory(state_machine_commander)
+add_subdirectory(lcd_node)
 
 set(
         ${PROJECT_NAME}_common_src
