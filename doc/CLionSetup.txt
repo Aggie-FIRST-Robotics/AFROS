@@ -1,0 +1,34 @@
+1. Add remote host in "Settings > Build, Execution, Deployment > Toolchains" by clicking the plus sign and choosing remote host
+2. Click the gear in credentials
+3. "Host" is 10.24.68.1
+4. "Port" is 22
+5. Add Authentication Info
+6. "Connection" should have a check mark and all other boxes left should auto detect
+7. This toolchain is added for all projects in clion, so name it well (mine is called afros-jetsonXX where XX is the id number, we also use different usernames for each jetson so no accidental overwrites occur)
+8. The following assumes a catkin ros project has already been made, if not follow that tutorial
+9. Copy all project files from the jetson to your computer (I use winSCP to do this)
+10. From now on I'll refer to the jetson path as {jetson} (Ex. {jetson}/catkin_ws/src) and your computer path as {pc} (Ex. {pc}/catkin_ws/devel)
+11. Open {pc} in clion using the open dialog, not import
+12. Edit the build profile settings by navigating to "Settings > Build, Execution, Deployment > CMake"
+13. Remove all profiles and add a new one
+14. Pick your toolchain for the jetson under "Toolchain"
+15. In "CMake Options" add "-DCMAKE_PREFIX_PATH={jetson}/catkin_ws/devel;/opt/ros/melodic" (without quotes and replacing {jetson} with your specific configuration)
+16. The purpose of this is to pass the required variables that would be set by sourcing the ros development files
+17. Navigate to "Settings > Build, Execution, Deployment > Deployment"
+18. Edit your toolchain and click on the mappings tab
+19. Replace "Local Path" with {pc} (This may already be the value)
+20. Replace deployment path with {jetson}
+21. Replace web path with \
+22. This sets up where the code changes you make get uploaded to
+23. Close settings and open "CMake Application" in "Run/Debug Configuration" (click "Add Configuration..." in the upper right) under "Templates"
+24. Add LD_LIBRARY_PATH=/opt/ros/melodic/lib in "Environment Variables"
+25. The purpose of this is to allow CLion to run the nodes without rosrun, but editing the template will not affect any already made configurations so the last step must be done manually for all those you've made already
+26. Load the catkin top level CMakeLists.txt by right clicking on {pc}/catkin_ws/src/CMakeList.txt and choosing "Load CMake Project"
+27. If this option doesn't appear then CLion has the wrong project type selected and we can fix this
+28. Open {pc}/.idea/misc.xml and add the following to it right under the project tag and then close and reopen the project
+
+<component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$/catkin_ws/src">
+    <contentRoot DIR="$PROJECT_DIR$" />
+</component>
+
+29. After this you should be ready to develop AFROS applications in CLion!
