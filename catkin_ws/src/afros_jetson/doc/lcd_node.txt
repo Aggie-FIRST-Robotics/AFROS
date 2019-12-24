@@ -2,4 +2,4 @@ This node allows you to run an lcd screen on the jetson. It's designed for the l
 i2c interface found on many of these boards. (Chip PCF8574T ABX919)
 
 It is configured to use bus 0 and address 0x27. In order to access this bus I recommend to run the command
-"sudo chmod o+rw /dev/i2c-0"
+"sudo usermod -a -G i2c $USER"

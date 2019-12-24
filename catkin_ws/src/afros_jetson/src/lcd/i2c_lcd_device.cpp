@@ -12,7 +12,8 @@ void afros_jetson::i2c_lcd_device::write(uint8_t data){
     usleep(100);
 }
 
-afros_jetson::i2c_lcd_device::i2c_lcd_device(uint8_t bus_num, uint8_t address) : device(){
+afros_jetson::i2c_lcd_device::i2c_lcd_device(uint8_t bus_num, uint8_t address)
+        : device(), backlight_state(afros_jetson::lcd::LCD_BACKLIGHT){
     memset(&device, 0, sizeof(device));
 
     const char* bus_name = (std::string("/dev/i2c-") + std::to_string(bus_num)).c_str();
@@ -40,14 +41,14 @@ afros_jetson::i2c_lcd_device::i2c_lcd_device(uint8_t bus_num, uint8_t address) :
 }
 
 void afros_jetson::i2c_lcd_device::lcd_strobe(uint8_t data){
-    write(data | lcd::En | lcd::LCD_BACKLIGHT);
+    write(data | lcd::En | backlight_state);
     usleep(500);
-    write((data & ~lcd::En) | lcd::LCD_BACKLIGHT);
+    write((data & ~lcd::En) | backlight_state);
     usleep(100);
 }
 
 void afros_jetson::i2c_lcd_device::lcd_write_four_bits(uint8_t data){
-    write(data | lcd::LCD_BACKLIGHT);
+    write(data | backlight_state);
     lcd_strobe(data);
 }
 
@@ -97,12 +98,8 @@ void afros_jetson::i2c_lcd_device::clear(){
 }
 
 void afros_jetson::i2c_lcd_device::backlight(bool on){
-    if(on){
-        write(lcd::LCD_BACKLIGHT);
-    }
-    else{
-        write(lcd::LCD_NOBACKLIGHT);
-    }
+    backlight_state = on ? lcd::LCD_BACKLIGHT : lcd::LCD_NOBACKLIGHT;
+    write(backlight_state);
 }
 
 #pragma clang diagnostic pop

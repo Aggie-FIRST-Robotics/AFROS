@@ -5,7 +5,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <arpa/inet.h>
-#include "../../include/libi2c/i2c.h"
+#include "afros_jetson/libi2c/i2c.h"
 
 
 /* I2C default delay */

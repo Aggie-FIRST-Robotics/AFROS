@@ -3,7 +3,7 @@
 
 namespace afros_jetson{
     namespace topics{
-        constexpr const char* LCD_SET = "afros/jetson/lcd_set";
+        constexpr const char* LCD_SET = "/afros/jetson/lcd_set";
     }
 }
 

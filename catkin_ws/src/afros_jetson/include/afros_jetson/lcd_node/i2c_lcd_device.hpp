@@ -1,7 +1,7 @@
 #ifndef AFROS_I2C_LCD_DEVICE_HPP
 #define AFROS_I2C_LCD_DEVICE_HPP
 
-#include "libi2c/i2c.h"
+#include "afros_jetson/libi2c/i2c.h"
 
 #include <cstdint>
 #include <cstdio>
@@ -58,6 +58,7 @@ namespace afros_jetson{
 
     class i2c_lcd_device{
         i2c_device device;
+        uint8_t backlight_state;
 
         void write(uint8_t data);
         void lcd_write(uint8_t cmd, uint8_t mode = 0);

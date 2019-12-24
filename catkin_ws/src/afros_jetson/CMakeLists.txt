@@ -87,7 +87,7 @@ generate_messages(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
         INCLUDE_DIRS include
-        LIBRARIES ${PROJECT_NAME}
+        LIBRARIES ${PROJECT_NAME}_common_lib
         CATKIN_DEPENDS afros_core roscpp
         #  DEPENDS system_lib
 )
@@ -95,16 +95,13 @@ catkin_package(
 ###########
 ## Build ##
 ###########
-
 include_directories(
         ${PROJECT_SOURCE_DIR}/include
         ${catkin_INCLUDE_DIRS}
 )
 
 add_subdirectory(src)
-
-## Specify additional locations of header files
-## Your package locations should be listed before other locations
+add_subdirectory(test)
 
 #############
 ## Install ##
