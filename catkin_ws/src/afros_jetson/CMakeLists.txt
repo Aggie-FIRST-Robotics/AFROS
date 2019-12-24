@@ -3,7 +3,7 @@ project(afros_jetson)
 add_compile_options(-std=c++11)
 
 if ($ENV{CLION_IDE})
-    message("Clion Detected")
+    message("-- Clion Detected")
     include_directories(
             ../../devel/include
     )

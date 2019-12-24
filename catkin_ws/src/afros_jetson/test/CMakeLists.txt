@@ -7,5 +7,5 @@ set(
         test.cpp
 )
 
-add_library(${PROJECT_NAME}_test_lib ${${PROJECT_NAME}_test_src})
+add_library(${PROJECT_NAME}_test_lib STATIC ${${PROJECT_NAME}_test_src})
 target_link_libraries(${PROJECT_NAME}_test_lib ${catkin_LIBRARIES} ${PROJECT_NAME}_common_lib)
