@@ -1,2 +1,2 @@
 string name
-int64 random
+string bond_id

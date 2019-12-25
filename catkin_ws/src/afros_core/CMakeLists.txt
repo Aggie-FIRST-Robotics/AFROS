@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
         roscpp
         message_generation
         actionlib
+        bondcpp
 )
 
 ## System dependencies are found with CMake's conventions
@@ -88,7 +89,7 @@ generate_messages(
 catkin_package(
         INCLUDE_DIRS include
         LIBRARIES ${PROJECT_NAME}_common_lib
-        CATKIN_DEPENDS roscpp message_runtime
+        CATKIN_DEPENDS roscpp message_runtime actionlib bondcpp
         #        DEPENDS system_lib
 )
 
@@ -98,6 +99,9 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
+if ($ENV{CLION_IDE})
+    list(FILTER catkin_INCLUDE_DIRS EXCLUDE REGEX "/catkin_ws/src/cmake-build-debug/")
+endif ()
 include_directories(
         include
         ${catkin_INCLUDE_DIRS}

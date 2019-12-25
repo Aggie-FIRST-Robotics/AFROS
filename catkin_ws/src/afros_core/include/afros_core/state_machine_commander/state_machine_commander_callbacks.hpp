@@ -10,23 +10,38 @@
 #include "afros_core/state_machine_get_name_by_id.h"
 #include "afros_core/state_machine_status.h"
 
-namespace afros_core{
-    namespace state_machine_commander{
-        struct publishers{
+#include <bondcpp/bond.h>
+
+namespace afros_core {
+    namespace state_machine_commander {
+        struct publishers {
             ros::Publisher order;
             ros::Publisher assign;
             ros::Publisher offline;
         };
 
-        struct status{
+        struct status {
             std::string name;
-            bool is_enabled{};
+            bool is_enabled;
+            bond::Bond *bond;
 
-            status() = default;
-            status(std::string name); // NOLINT(google-explicit-constructor,hicpp-explicit-conversions)
-            status(std::string name, bool is_enabled);
+            status(const status &other) = delete;
 
-            bool operator==(const status& other);
+            status(status &&other) noexcept;
+
+            ~status();
+
+            status &operator=(const status &other) = delete;
+
+            status &operator=(status &&other) noexcept;
+
+            status(std::string name, const std::string &bond_id);
+
+            status(std::string name, const std::string &bond_id, bool is_enabled);
+
+            bool operator==(const status &other);
+
+            bool operator==(const std::string &other);
         };
 
         static registry<status>* registry_ptr = nullptr;

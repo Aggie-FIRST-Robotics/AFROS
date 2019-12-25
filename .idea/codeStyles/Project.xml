@@ -1,0 +1,7 @@
+<component name="ProjectCodeStyleConfiguration">
+  <code_scheme name="Project" version="173">
+    <Objective-C>
+      <option name="SPACE_WITHIN_TEMPLATE_DOUBLE_GT" value="false" />
+    </Objective-C>
+  </code_scheme>
+</component>

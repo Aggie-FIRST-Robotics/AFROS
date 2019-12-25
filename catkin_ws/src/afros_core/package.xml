@@ -60,6 +60,9 @@
     <!-- Actions -->
     <depend>actionlib</depend>
 
+    <!-- Bond Package -->
+    <depend>bondcpp</depend>
+
     <!-- The export tag contains other, unspecified, tags -->
     <export>
         <!-- Other tools can request additional information be placed here -->

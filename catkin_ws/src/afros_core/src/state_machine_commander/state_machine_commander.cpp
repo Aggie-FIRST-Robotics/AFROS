@@ -4,7 +4,9 @@
 
 #include "afros_core/state_machine_commander/state_machine_commander_callbacks.hpp"
 
-int main(int argc, char* argv[]){
+#include <bondcpp/bond.h>
+
+int main(int argc, char *argv[]) {
     using namespace afros_core;
     auto node = init_ros(argc, argv, STATE_MACHINE_COMMANDER_NODE_NAME);
     ros::Rate rate{1};
@@ -14,29 +16,23 @@ int main(int argc, char* argv[]){
     ros::AsyncSpinner spinner{3};
 
     spinner.start();
-    while(ros::ok()){
+    while (ros::ok()) {
         std::vector<std::string> node_names{};
         ros::master::getNodes(node_names);
         registry_error error{};
-        for(uint32_t x = 0; x < registry.get_size(); x++){
-            AFROS_CORE_ERROR_CHECK(name, registry.get(x), error){
-                if(error != EMPTY_ENTRY){
+        for (uint32_t x = 0; x < registry.get_size(); x++) {
+            AFROS_CORE_ERROR_CHECK(entry, registry.get(x), error) {
+                if (error != EMPTY_ENTRY) {
                     ROS_ERROR("Error going through registry: %i", error);
                 }
                 continue;
             }
-
-            bool found = false;
-            for(auto& node_name : node_names){
-                if(node_name == name->name){
-                    found = true;
-                }
-            }
-            if(!found){
+            if (entry->get().bond->isBroken()) {
                 state_machine_offline message{};
-                message.name = name->name;
+                message.name = entry->get().name;
                 message.state_machine_id = x;
                 state_machine_commander::pubs->offline.publish(message);
+                registry.remove(x);
             }
         }
         rate.sleep();

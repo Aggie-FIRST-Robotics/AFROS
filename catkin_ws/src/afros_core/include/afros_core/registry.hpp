@@ -42,20 +42,30 @@ namespace afros_core{
 
     public:
         registry();
+
         explicit registry(uint32_t initial_capacity);
 
-        registry(const registry&);
-        registry(registry&&) = delete;
+        registry(const registry &);
+
+        registry(registry &&) = delete;
+
         ~registry();
-        registry& operator=(const registry&) = delete;
-        registry& operator=(registry&&) = delete;
+
+        registry &operator=(const registry &) = delete;
+
+        registry &operator=(registry &&) = delete;
 
         uint32_t get_size();
-        error_val <uint32_t, registry_error> find(const T& value);
-        error_val <T, registry_error> get(uint32_t value);
+
+        template<typename V>
+        error_val <uint32_t, registry_error> find(const V &value);
+
+        error_val <std::reference_wrapper<T>, registry_error> get(uint32_t value);
 
         error_val <uint32_t, registry_error> add(T value);
-        error_val <void_t, registry_error> remove(const T& value);
+
+        error_val <void_t, registry_error> remove(const T &value);
+
         error_val <void_t, registry_error> remove(uint32_t value);
     };
 
@@ -85,11 +95,12 @@ namespace afros_core{
     }
 
     template<typename T>
-    error_val <uint32_t, registry_error> registry<T>::find(const T& value){
+    template<typename V>
+    error_val <uint32_t, registry_error> registry<T>::find(const V &value) {
         boost::shared_lock<boost::shared_mutex> lock{mutex};
-        for(uint32_t x = 0; x < vec.size(); ++x){
-            auto& entry = vec.at(x);
-            if(entry.data != nullptr && *entry.data == value){
+        for (uint32_t x = 0; x < vec.size(); ++x) {
+            auto &entry = vec.at(x);
+            if (entry.data != nullptr && *entry.data == value) {
                 return error_val<uint32_t, registry_error>::value(x);
             }
         }
@@ -97,15 +108,15 @@ namespace afros_core{
     }
 
     template<typename T>
-    error_val <T, registry_error> registry<T>::get(uint32_t value){
+    error_val <std::reference_wrapper<T>, registry_error> registry<T>::get(uint32_t value) {
         boost::shared_lock<boost::shared_mutex> lock{mutex};
-        if(vec.size() <= value){
-            return error_val<T, registry_error>::error(OUT_OF_BOUNDS);
+        if (vec.size() <= value) {
+            return error_val<std::reference_wrapper<T>, registry_error>::error(OUT_OF_BOUNDS);
         }
-        if(vec.at(value).data == nullptr){
-            return error_val<T, registry_error>::error(EMPTY_ENTRY);
+        if (vec.at(value).data == nullptr) {
+            return error_val<std::reference_wrapper<T>, registry_error>::error(EMPTY_ENTRY);
         }
-        return error_val<T, registry_error>::value(*vec.at(value).data);
+        return error_val<std::reference_wrapper<T>, registry_error>::value(*vec.at(value).data);
     }
 
     template<typename T>
