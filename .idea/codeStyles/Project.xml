@@ -3,5 +3,11 @@
     <Objective-C>
       <option name="SPACE_WITHIN_TEMPLATE_DOUBLE_GT" value="false" />
     </Objective-C>
+    <Objective-C-extensions>
+      <extensions>
+        <pair source="cpp" header="hpp" fileNamingConvention="SNAKE_CASE" />
+        <pair source="c" header="h" fileNamingConvention="SNAKE_CASE" />
+      </extensions>
+    </Objective-C-extensions>
   </code_scheme>
 </component>
