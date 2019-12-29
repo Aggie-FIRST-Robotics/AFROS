@@ -4,6 +4,9 @@
 namespace afros_core {
     namespace topics {
         /*Messages*/
+        //Connection
+        constexpr const char *CONNECTION_BROADCAST = "/afros/connection/broadcast";
+
         //State Machines
         constexpr const char *STATE_MACHINE_BROADCAST = "/afros/state_machine/broadcast";
         constexpr const char *STATE_MACHINE_ORDER = "/afros/state_machine/order";

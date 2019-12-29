@@ -19,8 +19,9 @@ namespace std{
 }
 
 namespace afros_core{
-    ros::NodeHandle init_ros(int argc, char** argv, const char* node_id);
-    void end_ros(const char* node_id);
+    ros::NodeHandle init_ros(int &argc, char **&argv, const char *node_id);
+
+    void end_ros(const char *node_id);
 
     void error(const std::exception& e, const char* node_id);
 

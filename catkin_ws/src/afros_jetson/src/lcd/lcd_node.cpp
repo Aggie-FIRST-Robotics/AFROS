@@ -37,7 +37,7 @@ void lcd_set_callback(const afros_jetson::lcd_set& message){
     ROS_INFO("LCD set");
     lcd_device_ptr->backlight(message.backlight_on);
     auto lines = afros_jetson::strings_from_lcd_set(message);
-    lcd_device_ptr->clear();
+//    lcd_device_ptr->clear();
     for(uint8_t x = 0; x < 4; ++x){
         lcd_device_ptr->display_string(lines.at(x), x + 1);
     }

@@ -1,6 +1,6 @@
 #include "afros_core/common_lib.hpp"
 
-ros::NodeHandle afros_core::init_ros(int argc, char** argv, const char* node_id){
+ros::NodeHandle afros_core::init_ros(int &argc, char **&argv, const char *node_id) {
     ros::init(argc, argv, node_id);
     ros::NodeHandle node_handle{};
     ROS_INFO("%s initialized", node_id);

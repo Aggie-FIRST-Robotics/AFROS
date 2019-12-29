@@ -2,13 +2,6 @@ cmake_minimum_required(VERSION 2.8.3)
 project(afros_jetson)
 add_compile_options(-std=c++11)
 
-if ($ENV{CLION_IDE})
-    message("-- Clion Detected")
-    include_directories(
-            ../../devel/include
-    )
-endif ()
-
 find_package(
         catkin REQUIRED COMPONENTS
         roscpp

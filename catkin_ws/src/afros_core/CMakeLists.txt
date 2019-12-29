@@ -2,13 +2,6 @@ cmake_minimum_required(VERSION 2.8.3)
 project(afros_core)
 add_compile_options(-std=c++11)
 
-if ($ENV{CLION_IDE})
-    message("-- Clion Detected")
-    include_directories(
-            ../../devel/include
-    )
-endif ()
-
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -99,9 +92,6 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-if ($ENV{CLION_IDE})
-    list(FILTER catkin_INCLUDE_DIRS EXCLUDE REGEX "/catkin_ws/src/cmake-build-debug/")
-endif ()
 include_directories(
         include
         ${catkin_INCLUDE_DIRS}
