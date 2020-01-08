@@ -26,6 +26,7 @@ namespace afros_core{
         };
 
     public:
+        error_val();
         explicit error_val(V value);
         error_val(E error, bool dummy);
 
@@ -173,6 +174,8 @@ namespace afros_core{
         }
     }
 
+    template<typename V, typename E>
+    error_val<V, E>::error_val() : _is_error(false), _value(V{}){}
 }
 
 #endif //AFROS_CORE_ERROR_VAL_H

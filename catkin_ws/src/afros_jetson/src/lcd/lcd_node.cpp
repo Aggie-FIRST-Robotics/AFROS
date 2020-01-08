@@ -5,8 +5,9 @@
 
 #include "afros_jetson/node_names.hpp"
 #include "afros_jetson/topics.hpp"
-#include "afros_jetson/lcd_node/i2c_lcd_device.hpp"
-#include "afros_jetson/lcd_node/lcd_message_utils.hpp"
+#include "afros_jetson/lcd/i2c_lcd_device.hpp"
+#include "afros_jetson/lcd/lcd_message_utils.hpp"
+#include "afros_jetson/lcd_connection/lcd_connection.hpp"
 
 void lcd_set_callback(const afros_jetson::lcd_set& message);
 
@@ -15,20 +16,14 @@ static afros_jetson::i2c_lcd_device* lcd_device_ptr = nullptr;
 int main(int argc, char** argv){
     using namespace afros_jetson;
     ros::NodeHandle node = afros_core::init_ros(argc, argv, LCD_NODE_NAME);
-    ros::Rate rate{10};
-    i2c_lcd_device lcd_device{0, 0x27};
-    lcd_device_ptr = &lcd_device;
+    lcd_connection connection{0, 0x27, node, 10};
 
-    lcd_device.display_string(" Welcome to AFROS!! ", 2);
+    boost::array<std::string, 4> initial_text{};
+    initial_text.at(1) = " Welcome to AFROS!! ";
+    connection.set_data(initial_text);
     ROS_INFO("LCD Initialized");
 
-    auto lcd_set_sub = node.subscribe(topics::LCD_SET, 1, lcd_set_callback);
-    ROS_INFO("Subscribing to %s", topics::LCD_SET);
-
-    while(ros::ok()){
-        ros::spinOnce();
-        rate.sleep();
-    }
+    connection.main_function(argc, 0, 0)
 
     afros_core::end_ros(LCD_NODE_NAME);
 }

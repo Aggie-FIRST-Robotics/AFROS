@@ -12,7 +12,7 @@
 12. Edit the build profile settings by navigating to "Settings > Build, Execution, Deployment > CMake"
 13. Remove all profiles and add a new one
 14. Pick your toolchain for the jetson under "Toolchain"
-15. In "CMake Options" add "-DCMAKE_PREFIX_PATH={jetson}/catkin_ws/devel;/opt/ros/melodic" (without quotes and replacing {jetson} with your specific configuration)
+15. In "CMake Options" add "-DCMAKE_PREFIX_PATH={jetson}/catkin_ws/devel;/opt/ros/melodic -DCATKIN_DEVEL_PREFIX={jetson}/catkin_ws/devel" (without quotes and replacing {jetson} with your specific configuration)
 16. The purpose of this is to pass the required variables that would be set by sourcing the ros development files
 17. Navigate to "Settings > Build, Execution, Deployment > Deployment"
 18. Edit your toolchain and click on the mappings tab

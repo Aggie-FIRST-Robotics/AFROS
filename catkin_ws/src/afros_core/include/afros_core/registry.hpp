@@ -42,30 +42,23 @@ namespace afros_core{
 
     public:
         registry();
-
         explicit registry(uint32_t initial_capacity);
 
         registry(const registry &);
-
         registry(registry &&) = delete;
-
         ~registry();
-
         registry &operator=(const registry &) = delete;
-
         registry &operator=(registry &&) = delete;
 
         uint32_t get_size();
+        bool empty();
 
         template<typename V>
         error_val <uint32_t, registry_error> find(const V &value);
-
         error_val <std::reference_wrapper<T>, registry_error> get(uint32_t value);
 
         error_val <uint32_t, registry_error> add(T value);
-
         error_val <void_t, registry_error> remove(const T &value);
-
         error_val <void_t, registry_error> remove(uint32_t value);
     };
 
@@ -182,6 +175,11 @@ namespace afros_core{
         entry->next_free = value;
         --size;
         return error_val<void_t, registry_error>::value();
+    }
+
+    template<typename T>
+    bool registry<T>::empty(){
+        return size == 0;
     }
 }
 

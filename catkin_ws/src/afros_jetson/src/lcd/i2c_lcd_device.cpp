@@ -5,7 +5,7 @@
 #include <zconf.h>
 #include <string>
 #include <ros/ros.h>
-#include "afros_jetson/lcd_node/i2c_lcd_device.hpp"
+#include "afros_jetson/lcd/i2c_lcd_device.hpp"
 
 void afros_jetson::i2c_lcd_device::write(uint8_t data){
     i2c_ioctl_write(&device, 0, &data, 1);

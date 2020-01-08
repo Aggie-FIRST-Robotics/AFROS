@@ -1,7 +1,7 @@
 #include "afros_core/common_lib.hpp"
 #include "afros_jetson/topics.hpp"
 #include "afros_jetson/lcd_set.h"
-#include "afros_jetson/lcd_node/lcd_message_utils.hpp"
+#include "afros_jetson/lcd/lcd_message_utils.hpp"
 
 constexpr const char* NODE_ID = "lcd_test_node";
 

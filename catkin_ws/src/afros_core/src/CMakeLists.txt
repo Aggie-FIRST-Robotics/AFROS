@@ -15,6 +15,7 @@ add_subdirectory(state_machine_commander)
 set(
         ${PROJECT_NAME}_common_src
         common_lib.cpp
+        topics.cpp
 )
 
 add_library(${PROJECT_NAME}_common_lib STATIC ${${PROJECT_NAME}_common_src})

@@ -20,11 +20,9 @@ namespace std{
 
 namespace afros_core{
     ros::NodeHandle init_ros(int &argc, char **&argv, const char *node_id);
-
     void end_ros(const char *node_id);
 
     void error(const std::exception& e, const char* node_id);
-
     void error(const boost::system::error_code& e, const char* node_id);
 
     constexpr const char* STATE_MACHINE_COMMANDER_NODE_NAME = "afros_core_state_machine_commander_node";

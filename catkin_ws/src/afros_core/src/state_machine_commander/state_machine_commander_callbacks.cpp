@@ -4,10 +4,10 @@
 #include "afros_core/state_machine_assign.h"
 #include "afros_core/state_machine_offline.h"
 
-namespace afros_core {
-    namespace state_machine_commander {
-        publishers *register_all(ros::NodeHandle &node, registry<status> *registry) {
-            if (pubs != nullptr) {
+namespace afros_core{
+    namespace state_machine_commander{
+        publishers* register_all(ros::NodeHandle& node, registry<status>* registry){
+            if(pubs != nullptr){
                 return nullptr;
             }
 
@@ -27,16 +27,16 @@ namespace afros_core {
             return pubs;
         }
 
-        void broadcast_callback(const state_machine_broadcast &broadcast) {
+        void broadcast_callback(const state_machine_broadcast& broadcast){
             ROS_INFO("Broadcast recieved form %s", broadcast.name.c_str());
             auto found = registry_ptr->find(broadcast.name);
-            if (!found.is_error()) {
+            if(!found.is_error()){
                 ROS_WARN("Double register of %s", broadcast.name.c_str());
                 return;
             }
 
             registry_error error{};
-            AFROS_CORE_ERROR_CHECK(index, registry_ptr->add(status{broadcast.name, broadcast.bond_id}), error) {
+            AFROS_CORE_ERROR_CHECK(index, registry_ptr->add(status{broadcast.name, broadcast.bond_id}), error){
                 ROS_ERROR("Error assigning id for state machine %s: %i", broadcast.name.c_str(), error);
                 return;
             }
@@ -49,14 +49,14 @@ namespace afros_core {
             ROS_INFO("Assigned %s id %ui", broadcast.name.c_str(), *index);
         }
 
-        bool get_id_by_name_callback(state_machine_get_id_by_name::Request &request,
-                                     state_machine_get_id_by_name::Response &response) {
+        bool get_id_by_name_callback(state_machine_get_id_by_name::Request& request,
+                                     state_machine_get_id_by_name::Response& response){
             registry_error error{};
-            AFROS_CORE_ERROR_CHECK(found_val, registry_ptr->find<std::string>(request.name), error) {
+            AFROS_CORE_ERROR_CHECK(found_val, registry_ptr->find<std::string>(request.name), error){
                 ROS_ERROR("State machine %s not found", request.name.c_str());
                 return false;
             }
-            AFROS_CORE_ERROR_CHECK(entry, registry_ptr->get(*found_val), error) {
+            AFROS_CORE_ERROR_CHECK(entry, registry_ptr->get(*found_val), error){
                 ROS_ERROR("Cannot find entry that was found earlier! %s", request.name.c_str());
                 return false;
             }
@@ -65,15 +65,15 @@ namespace afros_core {
             return true;
         }
 
-        bool get_name_by_id_callback(state_machine_get_name_by_id::Request &request,
-                                     state_machine_get_name_by_id::Response &response) {
+        bool get_name_by_id_callback(state_machine_get_name_by_id::Request& request,
+                                     state_machine_get_name_by_id::Response& response){
             registry_error error;
-            AFROS_CORE_ERROR_CHECK(got, registry_ptr->get(request.state_machine_id), error) {
-                if (error == OUT_OF_BOUNDS) {
+            AFROS_CORE_ERROR_CHECK(got, registry_ptr->get(request.state_machine_id), error){
+                if(error == OUT_OF_BOUNDS){
                     ROS_ERROR("Request failed for index %ui, out of bounds", request.state_machine_id);
-                } else if (error == EMPTY_ENTRY) {
+                } else if(error == EMPTY_ENTRY){
                     ROS_ERROR("Request failed for index %ui, empty entry", request.state_machine_id);
-                } else {
+                } else{
                     ROS_ERROR("Request failed for index %ui", request.state_machine_id);
                 }
                 return false;
@@ -83,9 +83,9 @@ namespace afros_core {
             return true;
         }
 
-        bool status_callback(state_machine_status::Request &request, state_machine_status::Response &response) {
+        bool status_callback(state_machine_status::Request& request, state_machine_status::Response& response){
             registry_error error{};
-            AFROS_CORE_ERROR_CHECK(state_machine, registry_ptr->get(request.state_machine_id), error) {
+            AFROS_CORE_ERROR_CHECK(state_machine, registry_ptr->get(request.state_machine_id), error){
                 ROS_ERROR("Cannot find state machine %ui", request.state_machine_id);
                 return false;
             }
@@ -93,37 +93,37 @@ namespace afros_core {
             return true;
         }
 
-        bool status::operator==(const status &other) {
+        bool status::operator==(const status& other){
             return name == other.name;
         }
 
-        status::status(std::string name, const std::string &bond_id) :
+        status::status(std::string name, const std::string& bond_id) :
                 name(std::move(name)), is_enabled(false),
-                bond(new bond::Bond{topics::STATE_MACHINE_BOND + bond_id, bond_id}) {
+                bond(new bond::Bond{topics::STATE_MACHINE_BOND + bond_id, bond_id}){
             bond->start();
         }
 
-        status::status(std::string name, const std::string &bond_id, bool is_enabled) :
+        status::status(std::string name, const std::string& bond_id, bool is_enabled) :
                 name(std::move(name)), is_enabled(is_enabled),
-                bond(new bond::Bond{topics::STATE_MACHINE_BOND + bond_id, bond_id}) {
+                bond(new bond::Bond{topics::STATE_MACHINE_BOND + bond_id, bond_id}){
             bond->start();
         }
 
-        bool status::operator==(const std::string &other) {
+        bool status::operator==(const std::string& other){
             return name == other;
         }
 
-        status::status(status &&other) noexcept :
-                name(std::move(other.name)), is_enabled(other.is_enabled), bond(other.bond) {
+        status::status(status&& other) noexcept :
+                name(std::move(other.name)), is_enabled(other.is_enabled), bond(other.bond){
             other.bond = nullptr;
         }
 
-        status::~status() {
+        status::~status(){
             delete (bond);
         }
 
-        status &status::operator=(status &&other) noexcept {
-            if (this == &other) {
+        status& status::operator=(status&& other) noexcept{
+            if(this == &other){
                 return *this;
             }
             delete (bond);

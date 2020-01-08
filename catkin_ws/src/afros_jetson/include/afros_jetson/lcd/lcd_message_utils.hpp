@@ -1,7 +1,7 @@
 #ifndef AFROS_LCD_MESSAGE_UTILS_HPP
 #define AFROS_LCD_MESSAGE_UTILS_HPP
 
-#include "../../../../cmake-build-debug/devel/include/afros_jetson/lcd_set.h"
+#include "afros_jetson/lcd_set.h"
 #include <boost/array.hpp>
 
 namespace afros_jetson{

@@ -1,4 +1,4 @@
-#include "afros_jetson/lcd_node/lcd_message_utils.hpp"
+#include "afros_jetson/lcd/lcd_message_utils.hpp"
 
 namespace afros_jetson {
     void lcd_set_from_strings(lcd_set &message, const std::string &line1, const std::string &line2,
