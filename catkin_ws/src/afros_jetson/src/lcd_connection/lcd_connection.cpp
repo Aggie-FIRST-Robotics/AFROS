@@ -32,7 +32,7 @@ afros_jetson::lcd_connection::lcd_connection(uint8_t bus_num, uint8_t address, r
     lcd_timer = node.createSteadyTimer(ros::WallDuration{1.0 / fps}, timer_callback);
 }
 
-void afros_jetson::lcd_connection::main_loop(){}
+void afros_jetson::lcd_connection::main_loop(const ros::SteadyTimerEvent& event){}
 
 void afros_jetson::lcd_connection::set_data(const boost::array<std::string, 4>& lines){
     data.set_data(lines);

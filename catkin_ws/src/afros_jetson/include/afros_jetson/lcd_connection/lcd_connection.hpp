@@ -35,7 +35,7 @@ namespace afros_jetson{
 
     public:
         lcd_connection(uint8_t bus_num, uint8_t address, ros::NodeHandle& node, double fps);
-        void main_loop() override;
+        void main_loop(const ros::SteadyTimerEvent& event) override;
 
         void set_data(const boost::array<std::string, 4>& lines);
     };

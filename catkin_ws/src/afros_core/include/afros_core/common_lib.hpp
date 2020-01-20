@@ -25,6 +25,7 @@ namespace afros_core{
     void error(const std::exception& e, const char* node_id);
     void error(const boost::system::error_code& e, const char* node_id);
 
+    constexpr const char* CONNECTION_COMMANDER_NODE_NAME = "afros_core_connection_commander_node";
     constexpr const char* STATE_MACHINE_COMMANDER_NODE_NAME = "afros_core_state_machine_commander_node";
 }
 

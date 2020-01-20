@@ -1,0 +1,4 @@
+string connection_id
+---
+bool found
+connection_status status

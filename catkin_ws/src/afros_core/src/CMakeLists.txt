@@ -8,7 +8,6 @@ add_subdirectory(connection_commander)
 add_subdirectory(device_id)
 add_subdirectory(direct_control)
 add_subdirectory(direct_control_commander)
-add_subdirectory(main_commander)
 add_subdirectory(state_machine)
 add_subdirectory(state_machine_commander)
 

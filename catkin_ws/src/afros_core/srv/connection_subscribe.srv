@@ -1,4 +1,0 @@
-identifier subscriber
-connection_pub_sub subscription
-float64 hz_rate
----

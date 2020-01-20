@@ -3,78 +3,31 @@
 #include "afros_core/common_lib.hpp"
 #include "afros_core/topics.hpp"
 #include "afros_core/connection_broadcast.h"
-#include "afros_core/connection_assign.h"
 #include "afros_core/connection_subscribe.h"
 
 namespace afros_core{
-    connection::connection() : subscriptions(), publishers(), started(false), id(){}
+    connection::connection() : subscriptions(), publishers(), started(false){}
 
-    connection::connection(size_t subscriptions_size, size_t publishers_size) : subscriptions(subscriptions_size), publishers(publishers_size), started(false), id(){}
+    connection::connection(size_t subscriptions_size, size_t publishers_size) : subscriptions(subscriptions_size), publishers(publishers_size), started(false){}
 
-    void connection::main_function(ros::NodeHandle& node, double frequency, uint32_t num_async_threads){
+    void connection::main_function(ros::NodeHandle& node, double main_loop_frequency){
         //Lock off functions to create immutability
         started = true;
 
-        ros::Rate rate{frequency};
-        //Create async if requested
-        ros::AsyncSpinner* spinner = nullptr;
-        if(num_async_threads != 0){
-            spinner = new ros::AsyncSpinner{num_async_threads};
-            spinner->start();
+        if(main_loop_frequency <= 0){
+            throw std::runtime_error("Invalid frequency: " + std::to_string(main_loop_frequency));
         }
+        ros::Rate rate{main_loop_frequency};
 
         std::string name{};
         node.resolveName(name);
 
         //Create bond with id bond_id
         std::string bond_id = generate_unique_id();
-        bond::Bond bond(topics::CONNECTION_BOND, bond_id);
+        bond::Bond bond(topics::CONNECTION_BOND_PREFIX + bond_id, bond_id);
 
         //Broadcast bond id and what subs and pubs this connection has
-        {
-            auto broadcast_pub = node.advertise<connection_broadcast>(topics::CONNECTION_BROADCAST, 50);
-            connection_broadcast broadcast{};
-
-            broadcast.name = name;
-            broadcast.bond_id = bond_id;
-            for(auto& sub : subscriptions){
-                connection_pub_sub pub_sub{};
-                pub_sub.name = sub.name;
-                pub_sub.parent_name = name;
-                pub_sub.min_frequency = sub.max_frequency;
-                broadcast.subscriptions.push_back(pub_sub);
-            }
-            for(auto& pub : publishers){
-                connection_pub_sub pub_sub{};
-                pub_sub.name = pub.name;
-                pub_sub.parent_name = name;
-                pub_sub.min_frequency = 0.0;
-                broadcast.publications.push_back(pub_sub);
-            }
-
-            //Send broadcast until bond obtained
-            bond.start();
-            do{
-                broadcast_pub.publish(broadcast);
-            } while(!bond.waitUntilFormed(rate.expectedCycleTime()));
-        }
-
-        //Spin to find id assigned
-        {
-            bool has_id = false;
-            boost::function<void(const connection_assign&)> assign_callback{[&bond_id, &name, &has_id, this](const connection_assign& message){
-                if(!has_id && message.bond_id == bond_id){
-                    id = message.connection_id;
-                    has_id = true;
-                    ROS_INFO("connection %s assigned id %ui", name.c_str(), message.connection_id);
-                }
-            }};
-            auto assign_sub = node.subscribe<connection_assign>(topics::CONNECTION_ASSIGN, 10, assign_callback);
-            while(!has_id){
-                ros::spinOnce();
-                rate.sleep();
-            }
-        }
+        broadcast_bond_id(node, name, bond, rate, bond_id);
 
         //Register all subs and pubs with rates
         auto* internal_data = reinterpret_cast<internal_subscription*>(malloc(sizeof(internal_subscription) * subscriptions.size()));
@@ -82,7 +35,7 @@ namespace afros_core{
         for(size_t x = 0; x < subscriptions.size(); ++x){
             auto& sub = subscriptions.at(x);
             auto* curr = new(internal_data + x)internal_subscription{sub};
-            curr->publisher = node.advertise<raw_data>(topics::get_connection_data_topic(id, sub.name), 50);
+            curr->publisher = node.advertise<raw_data>(topics::get_connection_data_topic(name, sub.name), 50);
             subscribe_ables.emplace(sub.name, *curr);
         }
 
@@ -103,21 +56,18 @@ namespace afros_core{
                 found->second.next_update.start();
                 found->second.current_rate = new_freq;
             }
-            found->second.rated_bonds.emplace_back(topics::get_connection_bond_topic(id, found->first), message.bond_id, new_freq);
+            found->second.rated_bonds.emplace_back(topics::get_connection_bond_topic(name, found->first), message.bond_id, new_freq);
             found->second.rated_bonds.back().bond->start();
         }};
-        auto subscribe_subscription = node.subscribe<connection_subscribe>(topics::get_connection_subscribe_topic(id),50, subscribe_callback);
+        auto subscribe_subscription = node.subscribe<connection_subscribe>(topics::get_connection_subscribe_topic(name), 50, subscribe_callback);
 
         //Register all publishers with callbacks
         std::vector<ros::Subscriber> publish_ables{publishers.size()};
         for(auto& pub : publishers){
-            publish_ables.push_back(node.subscribe<raw_data>(topics::get_connection_data_topic(id, pub.name), 50, pub.publish_function));
+            publish_ables.push_back(node.subscribe<raw_data>(topics::get_connection_data_topic(name, pub.name), 50, pub.publish_function));
         }
 
-        //Do main loop until node ended or bond broken
-        while(ros::ok() && !bond.isBroken()){
-            main_loop();
-
+        boost::function<void(const ros::SteadyTimerEvent&)> bond_check_callback{[&subscribe_ables, &node](const ros::SteadyTimerEvent& event) -> void{
             for(auto& sub : subscribe_ables){
                 auto& rated_bonds = sub.second.rated_bonds;
                 boost::unique_lock<boost::mutex> lock{sub.second.rated_bonds_mutex};
@@ -146,27 +96,52 @@ namespace afros_core{
                         sub.second.next_update = node.createSteadyTimer(ros::WallDuration{1.0 / new_freq}, timer_callback);
                         sub.second.next_update.start();
                         sub.second.current_rate = new_freq;
-                    }
-                    else{
+                    } else{
                         sub.second.next_update.stop();
                     }
                 }
             }
+        }};
+        auto bond_check_timer = node.createSteadyTimer(ros::WallDuration{1}, bond_check_callback);
 
-            if(spinner == nullptr){
-                ros::spinOnce();
-            }
-            rate.sleep();
-        }
+        boost::function<void(const ros::SteadyTimerEvent&)> main_loop_callback{[this](const ros::SteadyTimerEvent& event) -> void{
+            main_loop(event);
+        }};
+        auto main_loop_timer = node.createSteadyTimer(ros::WallDuration{1.0 / main_loop_frequency}, main_loop_callback);
 
-        //Close spinner if that option was enabled
-        if(spinner != nullptr){
-            spinner->stop();
-            delete (spinner);
-        }
+        ros::spin();
+
         delete (internal_data);
         end_ros(node_name.c_str());
         started = false;
+    }
+
+    void connection::broadcast_bond_id(ros::NodeHandle& node, std::string& name, bond::Bond& bond, ros::Rate& rate, std::string& bond_id){
+        auto broadcast_pub = node.advertise<connection_broadcast>(topics::CONNECTION_BROADCAST, 50);
+        connection_broadcast broadcast{};
+
+        broadcast.name = name;
+        broadcast.bond_id = bond_id;
+        for(auto& sub : subscriptions){
+            connection_pub_sub pub_sub{};
+            pub_sub.name = sub.name;
+            pub_sub.parent_name = name;
+            pub_sub.min_frequency = sub.max_frequency;
+            broadcast.subscriptions.push_back(pub_sub);
+        }
+        for(auto& pub : publishers){
+            connection_pub_sub pub_sub{};
+            pub_sub.name = pub.name;
+            pub_sub.parent_name = name;
+            pub_sub.min_frequency = 0.0;
+            broadcast.publications.push_back(pub_sub);
+        }
+
+        //Send broadcast until bond obtained
+        bond.start();
+        do{
+            broadcast_pub.publish(broadcast);
+        } while(!bond.waitUntilFormed(rate.expectedCycleTime()));
     }
 
     error_val<nullptr_t, connection_error> connection::add_subscription(const subscription& sub){

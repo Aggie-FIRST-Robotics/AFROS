@@ -55,7 +55,6 @@ namespace afros_core{
 
     class connection{
         bool started;
-        uint32_t id;
 
         std::string node_name;
 
@@ -63,6 +62,7 @@ namespace afros_core{
         std::vector<publisher> publishers;
 
         std::string generate_unique_id();
+        void broadcast_bond_id(ros::NodeHandle& node, std::string& name, bond::Bond& bond, ros::Rate& rate, std::string& bond_id);
 
     protected:
         error_val<nullptr_t, connection_error> add_subscription(const subscription& sub);
@@ -74,17 +74,14 @@ namespace afros_core{
         connection();
         connection(size_t subscriptions_size, size_t publishers_size);
 
-        virtual void main_loop() = 0;
+        virtual void main_loop(const ros::SteadyTimerEvent& event) = 0;
 
         /**
          * Function to run inside your connection node's main function
          * @param node from main function
-         * @param argv from main function
-         * @param connection connection representing this node
-         * @param frequency rate for this node, should be faster than all subscriptions if not async
-         * @param num_async_threads 0 if not async, or number of threads to run
+         * @param main_loop_frequency rate for main_loop function
          */
-        void main_function(ros::NodeHandle& node, double frequency, uint32_t num_async_threads);
+        void main_function(ros::NodeHandle& node, double main_loop_frequency);
     };
 }
 

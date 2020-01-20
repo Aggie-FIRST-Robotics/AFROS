@@ -1,100 +1,74 @@
 #include "afros_core/state_machine_commander/state_machine_commander_callbacks.hpp"
 
 #include "afros_core/state_machine_order.h"
-#include "afros_core/state_machine_assign.h"
 #include "afros_core/state_machine_offline.h"
 
 namespace afros_core{
     namespace state_machine_commander{
-        publishers* register_all(ros::NodeHandle& node, registry<status>* registry){
-            if(pubs != nullptr){
+        pub_subs* register_all(ros::NodeHandle& node, std::unordered_map<std::string, status>* state_machine_map){
+            if(pub_sub != nullptr){
                 return nullptr;
             }
 
-            registry_ptr = registry;
+            if(state_machine_map == nullptr){
+                ROS_ERROR("Cannot have nullptr for connection_map!");
+                throw std::runtime_error{"Cannot have nullptr for connection_map!"};
+            }
+            state_machine_map_ptr = state_machine_map;
 
-            pubs = new publishers{};
-            pubs->order = node.advertise<state_machine_order>(topics::STATE_MACHINE_ORDER, 50);
-            pubs->assign = node.advertise<state_machine_assign>(topics::STATE_MACHINE_ASSIGN, 50);
-            pubs->offline = node.advertise<state_machine_offline>(topics::STATE_MACHINE_OFFLINE, 50);
+            pub_sub = new pub_subs{};
+            pub_sub->order_publisher = node.advertise<state_machine_order>(topics::STATE_MACHINE_ORDER, 50);
+            pub_sub->offline_publisher = node.advertise<state_machine_offline>(topics::STATE_MACHINE_OFFLINE, 50);
+            pub_sub->broadcast_subscriber = node.subscribe(topics::STATE_MACHINE_BROADCAST, 50, broadcast_callback);
+            pub_sub->status_service = node.advertiseService(topics::STATE_MACHINE_STATUS_SERVICE, status_callback);
+            pub_sub->bond_check_timer = node.createSteadyTimer(ros::WallDuration{1}, bond_check_callback);
 
-            node.subscribe(topics::STATE_MACHINE_BROADCAST, 50, broadcast_callback);
-
-            node.advertiseService(topics::STATE_MACHINE_GET_ID_BY_NAME, get_id_by_name_callback);
-            node.advertiseService(topics::STATE_MACHINE_GET_NAME_BY_ID, get_name_by_id_callback);
-            node.advertiseService(topics::STATE_MACHINE_STATUS, status_callback);
-
-            return pubs;
+            return pub_sub;
         }
 
         void broadcast_callback(const state_machine_broadcast& broadcast){
-            ROS_INFO("Broadcast recieved form %s", broadcast.name.c_str());
-            auto found = registry_ptr->find(broadcast.name);
-            if(!found.is_error()){
-                ROS_WARN("Double register of %s", broadcast.name.c_str());
+            if(state_machine_map_ptr->find(broadcast.name) != state_machine_map_ptr->end()){
+                ROS_ERROR("%s connection already registered and running!", broadcast.name.c_str());
                 return;
             }
 
-            registry_error error{};
-            AFROS_CORE_ERROR_CHECK(index, registry_ptr->add(status{broadcast.name, broadcast.bond_id}), error){
-                ROS_ERROR("Error assigning id for state machine %s: %i", broadcast.name.c_str(), error);
+            auto result = state_machine_map_ptr->emplace(broadcast.name, status{broadcast.name, broadcast.bond_id});
+            if(!result.second){
+                ROS_ERROR("Could not insert connection %s with bond id %s", broadcast.name.c_str(), broadcast.bond_id.c_str());
                 return;
             }
-
-            state_machine_assign out{};
-            out.name = broadcast.name;
-            out.bond_id = broadcast.bond_id;
-            out.state_machine_id = *index;
-            pubs->assign.publish(out);
-            ROS_INFO("Assigned %s id %ui", broadcast.name.c_str(), *index);
-        }
-
-        bool get_id_by_name_callback(state_machine_get_id_by_name::Request& request,
-                                     state_machine_get_id_by_name::Response& response){
-            registry_error error{};
-            AFROS_CORE_ERROR_CHECK(found_val, registry_ptr->find<std::string>(request.name), error){
-                ROS_ERROR("State machine %s not found", request.name.c_str());
-                return false;
-            }
-            AFROS_CORE_ERROR_CHECK(entry, registry_ptr->get(*found_val), error){
-                ROS_ERROR("Cannot find entry that was found earlier! %s", request.name.c_str());
-                return false;
-            }
-            response.is_enabled = entry->get().is_enabled;
-            response.state_machine_id = *found_val;
-            return true;
-        }
-
-        bool get_name_by_id_callback(state_machine_get_name_by_id::Request& request,
-                                     state_machine_get_name_by_id::Response& response){
-            registry_error error;
-            AFROS_CORE_ERROR_CHECK(got, registry_ptr->get(request.state_machine_id), error){
-                if(error == OUT_OF_BOUNDS){
-                    ROS_ERROR("Request failed for index %ui, out of bounds", request.state_machine_id);
-                } else if(error == EMPTY_ENTRY){
-                    ROS_ERROR("Request failed for index %ui, empty entry", request.state_machine_id);
-                } else{
-                    ROS_ERROR("Request failed for index %ui", request.state_machine_id);
-                }
-                return false;
-            }
-            response.name = got->get().name;
-            response.is_enabled = got->get().is_enabled;
-            return true;
+            result.first->second.bond->start();
         }
 
         bool status_callback(state_machine_status::Request& request, state_machine_status::Response& response){
-            registry_error error{};
-            AFROS_CORE_ERROR_CHECK(state_machine, registry_ptr->get(request.state_machine_id), error){
-                ROS_ERROR("Cannot find state machine %ui", request.state_machine_id);
-                return false;
+            auto found = state_machine_map_ptr->find(request.state_machine_name);
+            if(found == state_machine_map_ptr->end()){
+                response.is_registered = false;
+                return true;
             }
-            response.is_enabled = state_machine->get().is_enabled;
+            response.is_registered = true;
+            response.is_enabled = found->second.is_enabled;
             return true;
         }
 
-        bool status::operator==(const status& other){
-            return name == other.name;
+        void end(){
+            delete (pub_sub);
+        }
+
+        void bond_check_callback(const ros::SteadyTimerEvent& event){
+            std::vector<std::string> removes;
+            for(auto& entry : *state_machine_map_ptr){
+                if(entry.second.bond->isBroken()){
+                    state_machine_offline message{};
+                    message.state_machine_id = entry.first;
+                    pub_sub->offline_publisher.publish(message);
+                    removes.push_back(entry.first);
+                }
+            }
+
+            for(auto& remove : removes){
+                state_machine_map_ptr->erase(remove);
+            }
         }
 
         status::status(std::string name, const std::string& bond_id) :
@@ -107,10 +81,6 @@ namespace afros_core{
                 name(std::move(name)), is_enabled(is_enabled),
                 bond(new bond::Bond{topics::STATE_MACHINE_BOND + bond_id, bond_id}){
             bond->start();
-        }
-
-        bool status::operator==(const std::string& other){
-            return name == other;
         }
 
         status::status(status&& other) noexcept :

@@ -1,0 +1,4 @@
+string state_machine_id
+---
+bool is_registered
+bool is_enabled

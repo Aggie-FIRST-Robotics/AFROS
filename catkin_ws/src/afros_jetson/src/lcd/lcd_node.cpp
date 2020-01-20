@@ -4,7 +4,6 @@
 #include "afros_jetson/lcd_set.h"
 
 #include "afros_jetson/node_names.hpp"
-#include "afros_jetson/topics.hpp"
 #include "afros_jetson/lcd/i2c_lcd_device.hpp"
 #include "afros_jetson/lcd/lcd_message_utils.hpp"
 #include "afros_jetson/lcd_connection/lcd_connection.hpp"
@@ -23,7 +22,7 @@ int main(int argc, char** argv){
     connection.set_data(initial_text);
     ROS_INFO("LCD Initialized");
 
-    connection.main_function(argc, 0, 0)
+    connection.main_function(node, 10);
 
     afros_core::end_ros(LCD_NODE_NAME);
 }
