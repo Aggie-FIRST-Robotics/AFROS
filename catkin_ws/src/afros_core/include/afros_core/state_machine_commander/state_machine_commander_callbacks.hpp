@@ -5,7 +5,7 @@
 #include "ros/ros.h"
 
 #include "afros_core/state_machine_broadcast.h"
-#include "afros_core/state_machine_status.h"
+#include "afros_core/state_machine_get_status.h"
 
 #include <bondcpp/bond.h>
 #include <unordered_map>
@@ -43,7 +43,7 @@ namespace afros_core{
         void end();
 
         void broadcast_callback(const state_machine_broadcast& broadcast);
-        bool status_callback(state_machine_status::Request& request, state_machine_status::Response& response);
+        bool status_callback(state_machine_get_status::Request& request, state_machine_get_status::Response& response);
         void bond_check_callback(const ros::SteadyTimerEvent& event);
     }
 }

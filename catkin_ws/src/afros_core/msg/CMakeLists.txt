@@ -11,7 +11,6 @@ set(
         identifier.msg
         raw_data.msg
         state_machine_broadcast.msg
-        state_machine_current_state.msg
         state_machine_offline.msg
         state_machine_order.msg
 

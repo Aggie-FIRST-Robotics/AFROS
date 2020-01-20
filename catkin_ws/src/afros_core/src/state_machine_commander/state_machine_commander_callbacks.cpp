@@ -40,8 +40,8 @@ namespace afros_core{
             result.first->second.bond->start();
         }
 
-        bool status_callback(state_machine_status::Request& request, state_machine_status::Response& response){
-            auto found = state_machine_map_ptr->find(request.state_machine_name);
+        bool status_callback(state_machine_get_status::Request& request, state_machine_get_status::Response& response){
+            auto found = state_machine_map_ptr->find(request.state_machine_id);
             if(found == state_machine_map_ptr->end()){
                 response.is_registered = false;
                 return true;

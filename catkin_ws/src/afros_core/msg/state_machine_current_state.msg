@@ -1,1 +1,0 @@
-uint32 current_state_id
