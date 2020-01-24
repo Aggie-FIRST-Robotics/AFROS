@@ -1,10 +1,7 @@
 #include "afros_jetson/lcd_connection/lcd_connection.hpp"
 
-#include "afros_jetson/node_names.hpp"
-
-afros_jetson::lcd_connection::lcd_connection(uint8_t bus_num, uint8_t address, ros::NodeHandle& node, double fps) : connection(1, 1), lcd(bus_num, address), data(), lcd_timer(){
-    set_name(LCD_NODE_NAME);
-
+afros_jetson::lcd_connection::lcd_connection(uint8_t bus_num, uint8_t address, ros::NodeHandle& node, double fps, const std::string& name) : connection(1, 1, name), lcd(bus_num, address), data(),
+                                                                                                                                             lcd_timer(){
     afros_core::subscription lcd_subscription{};
     lcd_subscription.name = "lcd_current";
     lcd_subscription.data_function = [this]() -> afros_core::raw_data{
@@ -21,7 +18,9 @@ afros_jetson::lcd_connection::lcd_connection(uint8_t bus_num, uint8_t address, r
     add_publisher(lcd_publisher);
 
     boost::function<void(const ros::SteadyTimerEvent&)> timer_callback{[this](const ros::SteadyTimerEvent& event){
+        ROS_INFO("Running data check");
         if(data.was_changed()){
+            ROS_INFO("Data updating");
             auto strings = data.as_strings();
             for(uint8_t x = 0; x < 4; ++x){
                 lcd.display_string(strings.at(x), x + 1);
@@ -36,6 +35,10 @@ void afros_jetson::lcd_connection::main_loop(const ros::SteadyTimerEvent& event)
 
 void afros_jetson::lcd_connection::set_data(const boost::array<std::string, 4>& lines){
     data.set_data(lines);
+    auto data_val = data.as_strings();
+    for(int x = 0; x < 4; x++){
+        ROS_INFO("Data line %i: %s", x, data_val.at(x).c_str());
+    }
 }
 
 afros_jetson::lcd_data::lcd_data(const boost::array<std::string, 4>& data) : lines(), changed(false){

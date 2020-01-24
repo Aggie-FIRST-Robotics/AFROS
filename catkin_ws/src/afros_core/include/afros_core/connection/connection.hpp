@@ -62,7 +62,7 @@ namespace afros_core{
         std::vector<publisher> publishers;
 
         std::string generate_unique_id();
-        void broadcast_bond_id(ros::NodeHandle& node, std::string& name, bond::Bond& bond, ros::Rate& rate, std::string& bond_id);
+        void broadcast_bond_id(ros::NodeHandle& node, bond::Bond& bond, std::string& bond_id);
 
     protected:
         error_val<nullptr_t, connection_error> add_subscription(const subscription& sub);
@@ -71,8 +71,8 @@ namespace afros_core{
         error_val<nullptr_t, connection_error> set_name(const std::string& name);
 
     public:
-        connection();
-        connection(size_t subscriptions_size, size_t publishers_size);
+        explicit connection(std::string name);
+        connection(size_t subscriptions_size, size_t publishers_size, std::string name);
 
         virtual void main_loop(const ros::SteadyTimerEvent& event) = 0;
 

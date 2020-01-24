@@ -1,0 +1,8 @@
+#ifndef AFROS_LCD_CONNECTION_ACCESS_HPP
+#define AFROS_LCD_CONNECTION_ACCESS_HPP
+
+namespace afros_jetson{
+
+}
+
+#endif //AFROS_LCD_CONNECTION_ACCESS_HPP

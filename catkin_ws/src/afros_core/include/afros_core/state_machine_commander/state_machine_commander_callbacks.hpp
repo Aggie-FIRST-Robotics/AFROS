@@ -14,7 +14,6 @@ namespace afros_core{
     namespace state_machine_commander{
         struct pub_subs{
             ros::Publisher order_publisher;
-            ros::Publisher assign_publisher;
             ros::Publisher offline_publisher;
             ros::Subscriber broadcast_subscriber;
             ros::ServiceServer status_service;

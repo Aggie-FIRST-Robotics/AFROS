@@ -6,9 +6,12 @@
 #include "afros_core/connection_subscribe.h"
 
 namespace afros_core{
-    connection::connection() : subscriptions(), publishers(), started(false){}
+    connection::connection(std::string name) : subscriptions(), publishers(), started(false), node_name(std::move(name)){}
 
-    connection::connection(size_t subscriptions_size, size_t publishers_size) : subscriptions(subscriptions_size), publishers(publishers_size), started(false){}
+    connection::connection(size_t subscriptions_size, size_t publishers_size, std::string name) : subscriptions(), publishers(), started(false), node_name(std::move(name)){
+        subscriptions.reserve(subscriptions_size);
+        publishers.reserve(publishers_size);
+    }
 
     void connection::main_function(ros::NodeHandle& node, double main_loop_frequency){
         //Lock off functions to create immutability
@@ -17,17 +20,15 @@ namespace afros_core{
         if(main_loop_frequency <= 0){
             throw std::runtime_error("Invalid frequency: " + std::to_string(main_loop_frequency));
         }
-        ros::Rate rate{main_loop_frequency};
 
-        std::string name{};
-        node.resolveName(name);
+        ROS_INFO("Starting connection %s...", node_name.c_str());
 
         //Create bond with id bond_id
         std::string bond_id = generate_unique_id();
-        bond::Bond bond(topics::CONNECTION_BOND_PREFIX + bond_id, bond_id);
+        bond::Bond bond(topics::CONNECTION_BOND_PREFIX + node_name, bond_id);
 
         //Broadcast bond id and what subs and pubs this connection has
-        broadcast_bond_id(node, name, bond, rate, bond_id);
+        broadcast_bond_id(node, bond, bond_id);
 
         //Register all subs and pubs with rates
         auto* internal_data = reinterpret_cast<internal_subscription*>(malloc(sizeof(internal_subscription) * subscriptions.size()));
@@ -35,14 +36,14 @@ namespace afros_core{
         for(size_t x = 0; x < subscriptions.size(); ++x){
             auto& sub = subscriptions.at(x);
             auto* curr = new(internal_data + x)internal_subscription{sub};
-            curr->publisher = node.advertise<raw_data>(topics::get_connection_data_topic(name, sub.name), 50);
+            curr->publisher = node.advertise<raw_data>(topics::get_connection_data_topic(node_name, sub.name), 50);
             subscribe_ables.emplace(sub.name, *curr);
         }
 
-        boost::function<void(const connection_subscribe&)> subscribe_callback{[&subscribe_ables, &name, &node, this](const connection_subscribe& message){
+        boost::function<void(const connection_subscribe&)> subscribe_callback{[&subscribe_ables, &node, this](const connection_subscribe& message){
             auto found = subscribe_ables.find(message.subscription);
             if(found == subscribe_ables.end()){
-                ROS_ERROR("Connection %s got subscribed for %s and wasn't found", name.c_str(), message.subscription.c_str());
+                ROS_ERROR("Connection %s got subscribed for %s and wasn't found", node_name.c_str(), message.subscription.c_str());
                 return;
             }
             boost::unique_lock<boost::mutex> lock{found->second.rated_bonds_mutex};
@@ -56,18 +57,19 @@ namespace afros_core{
                 found->second.next_update.start();
                 found->second.current_rate = new_freq;
             }
-            found->second.rated_bonds.emplace_back(topics::get_connection_bond_topic(name, found->first), message.bond_id, new_freq);
+            found->second.rated_bonds.emplace_back(topics::get_connection_bond_topic(node_name, found->first), message.bond_id, new_freq);
             found->second.rated_bonds.back().bond->start();
         }};
-        auto subscribe_subscription = node.subscribe<connection_subscribe>(topics::get_connection_subscribe_topic(name), 50, subscribe_callback);
+        auto subscribe_subscription = node.subscribe<connection_subscribe>(topics::get_connection_subscribe_topic(node_name), 50, subscribe_callback);
 
         //Register all publishers with callbacks
         std::vector<ros::Subscriber> publish_ables{publishers.size()};
         for(auto& pub : publishers){
-            publish_ables.push_back(node.subscribe<raw_data>(topics::get_connection_data_topic(name, pub.name), 50, pub.publish_function));
+            publish_ables.push_back(node.subscribe<raw_data>(topics::get_connection_data_topic(node_name, pub.name), 50, pub.publish_function));
         }
 
-        boost::function<void(const ros::SteadyTimerEvent&)> bond_check_callback{[&subscribe_ables, &node](const ros::SteadyTimerEvent& event) -> void{
+        boost::function<void(const ros::SteadyTimerEvent&)> bond_check_callback{[this, &subscribe_ables, &node](const ros::SteadyTimerEvent& event) -> void{
+            ROS_INFO("%s checking bonds", node_name.c_str());
             for(auto& sub : subscribe_ables){
                 auto& rated_bonds = sub.second.rated_bonds;
                 boost::unique_lock<boost::mutex> lock{sub.second.rated_bonds_mutex};
@@ -109,6 +111,7 @@ namespace afros_core{
         }};
         auto main_loop_timer = node.createSteadyTimer(ros::WallDuration{1.0 / main_loop_frequency}, main_loop_callback);
 
+        ROS_INFO("%s now spinning", node_name.c_str());
         ros::spin();
 
         delete (internal_data);
@@ -116,32 +119,39 @@ namespace afros_core{
         started = false;
     }
 
-    void connection::broadcast_bond_id(ros::NodeHandle& node, std::string& name, bond::Bond& bond, ros::Rate& rate, std::string& bond_id){
+    void connection::broadcast_bond_id(ros::NodeHandle& node, bond::Bond& bond, std::string& bond_id){
         auto broadcast_pub = node.advertise<connection_broadcast>(topics::CONNECTION_BROADCAST, 50);
         connection_broadcast broadcast{};
 
-        broadcast.name = name;
+        broadcast.name = node_name;
         broadcast.bond_id = bond_id;
         for(auto& sub : subscriptions){
             connection_pub_sub pub_sub{};
             pub_sub.name = sub.name;
-            pub_sub.parent_name = name;
+            pub_sub.parent_name = node_name;
             pub_sub.min_frequency = sub.max_frequency;
             broadcast.subscriptions.push_back(pub_sub);
         }
         for(auto& pub : publishers){
             connection_pub_sub pub_sub{};
             pub_sub.name = pub.name;
-            pub_sub.parent_name = name;
+            pub_sub.parent_name = node_name;
             pub_sub.min_frequency = 0.0;
             broadcast.publications.push_back(pub_sub);
         }
 
         //Send broadcast until bond obtained
+        ROS_INFO("Val: %f", bond.getDisconnectTimeout());
         bond.start();
+
+        ros::AsyncSpinner spinner{1};
+        spinner.start();
         do{
+            ROS_INFO("Broadcasting connection for %s on topic %s", node_name.c_str(), (topics::CONNECTION_BOND_PREFIX + node_name).c_str());
             broadcast_pub.publish(broadcast);
-        } while(!bond.waitUntilFormed(rate.expectedCycleTime()));
+        } while(!bond.waitUntilFormed(ros::Duration(10)));
+        spinner.stop();
+        ROS_INFO("%s formed bond with connection commander", node_name.c_str());
     }
 
     error_val<nullptr_t, connection_error> connection::add_subscription(const subscription& sub){
@@ -172,7 +182,7 @@ namespace afros_core{
         uint32_t sec = 0;
         uint32_t nsec = 0;
         ros::ros_steadytime(sec, nsec);
-        return "connection-" + node_name + "-" + std::to_string(sec) + "." + std::to_string(nsec);
+        return "connection_" + node_name + "_" + std::to_string(sec) + "_" + std::to_string(nsec);
     }
 
     internal_subscription::internal_subscription(subscription& sub) : sub(sub), publisher(), next_update(), current_rate(sub.max_frequency), rated_bonds_mutex(), rated_bonds(){}

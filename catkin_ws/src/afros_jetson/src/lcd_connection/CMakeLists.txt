@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8.3)
 set(
         ${PROJECT_NAME}_lcd_connection_lib_src
         lcd_connection.cpp
+        lcd_connection_access.cpp
 )
 
 add_library(${PROJECT_NAME}_lcd_connection_lib STATIC ${${PROJECT_NAME}_lcd_connection_lib_src})

@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8.3)
 set(${PROJECT_NAME}_common_export_libs ${catkin_LIBRARIES} CACHE STRING "" FORCE)
 mark_as_advanced(${PROJECT_NAME}_export_libs)
 
+add_subdirectory(access)
 add_subdirectory(connection)
 add_subdirectory(connection_commander)
 add_subdirectory(device_id)

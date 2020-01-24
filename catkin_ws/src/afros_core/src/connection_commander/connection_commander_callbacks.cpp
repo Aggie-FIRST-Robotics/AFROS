@@ -23,7 +23,7 @@ namespace afros_core{
             return *this;
         }
 
-        status::status(std::string name, const std::string& bond_id) : name(std::move(name)), bond(new bond::Bond{topics::CONNECTION_BOND_PREFIX + name, bond_id}){
+        status::status(std::string name, const std::string& bond_id) : name(std::move(name)), bond(new bond::Bond{topics::CONNECTION_BOND_PREFIX + this->name, bond_id}){
             bond->start();
         }
 
@@ -62,7 +62,15 @@ namespace afros_core{
                 ROS_ERROR("Could not insert connection %s with bond id %s", broadcast.name.c_str(), broadcast.bond_id.c_str());
                 return;
             }
+            ROS_INFO("Forming bond with %s on topic %s", broadcast.name.c_str(), (topics::CONNECTION_BOND_PREFIX + broadcast.name).c_str());
             result.first->second.bond->start();
+            ros::AsyncSpinner spinner{1};
+            spinner.start();
+            if(!result.first->second.bond->waitUntilFormed(ros::Duration(10))){
+                ROS_ERROR("Could not form bond with %s bond id %s", broadcast.name.c_str(), broadcast.bond_id.c_str());
+                connection_map_ptr->erase(result.first);
+            }
+            spinner.stop();
         }
 
         bool status_callback(connection_get_status::Request& request, connection_get_status::Response& response){
@@ -77,6 +85,7 @@ namespace afros_core{
         }
 
         void bond_check_callback(const ros::SteadyTimerEvent& event){
+            ROS_DEBUG("Bond check running");
             std::vector<std::string> removes;
             for(auto& entry : *connection_map_ptr){
                 if(entry.second.bond->isBroken()){
@@ -87,6 +96,7 @@ namespace afros_core{
                 }
             }
 
+            ROS_DEBUG("Bond check finished, removing %lu items of %lu items", removes.size(), connection_map_ptr->size());
             for(auto& remove : removes){
                 connection_map_ptr->erase(remove);
             }

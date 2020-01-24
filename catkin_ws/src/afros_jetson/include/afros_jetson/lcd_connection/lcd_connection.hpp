@@ -34,7 +34,7 @@ namespace afros_jetson{
         ros::SteadyTimer lcd_timer;
 
     public:
-        lcd_connection(uint8_t bus_num, uint8_t address, ros::NodeHandle& node, double fps);
+        lcd_connection(uint8_t bus_num, uint8_t address, ros::NodeHandle& node, double fps, const std::string& name);
         void main_loop(const ros::SteadyTimerEvent& event) override;
 
         void set_data(const boost::array<std::string, 4>& lines);

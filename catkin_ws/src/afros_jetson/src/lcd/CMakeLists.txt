@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 2.8.3)
 set(
         ${PROJECT_NAME}_lcd_lib_src
         i2c_lcd_device.cpp
-        lcd_message_utils.cpp
 )
 
 set(

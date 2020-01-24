@@ -7,7 +7,7 @@ namespace afros_core{
     namespace state_machine_commander{
         pub_subs* register_all(ros::NodeHandle& node, std::unordered_map<std::string, status>* state_machine_map){
             if(pub_sub != nullptr){
-                return nullptr;
+                return pub_sub;
             }
 
             if(state_machine_map == nullptr){
@@ -38,6 +38,13 @@ namespace afros_core{
                 return;
             }
             result.first->second.bond->start();
+            ros::AsyncSpinner spinner{1};
+            spinner.start();
+            if(!result.first->second.bond->waitUntilFormed(ros::Duration(10))){
+                ROS_ERROR("Could not form bond with %s bond id %s", broadcast.name.c_str(), broadcast.bond_id.c_str());
+                state_machine_map_ptr->erase(result.first);
+            }
+            spinner.stop();
         }
 
         bool status_callback(state_machine_get_status::Request& request, state_machine_get_status::Response& response){
@@ -56,6 +63,7 @@ namespace afros_core{
         }
 
         void bond_check_callback(const ros::SteadyTimerEvent& event){
+            ROS_DEBUG("Bond check running");
             std::vector<std::string> removes;
             for(auto& entry : *state_machine_map_ptr){
                 if(entry.second.bond->isBroken()){
@@ -66,20 +74,18 @@ namespace afros_core{
                 }
             }
 
+            ROS_DEBUG("Bond check finished, removing %lu items of %lu items", removes.size(), state_machine_map_ptr->size());
             for(auto& remove : removes){
                 state_machine_map_ptr->erase(remove);
             }
         }
 
-        status::status(std::string name, const std::string& bond_id) :
-                name(std::move(name)), is_enabled(false),
-                bond(new bond::Bond{topics::STATE_MACHINE_BOND + bond_id, bond_id}){
+        status::status(std::string name, const std::string& bond_id) : name(std::move(name)), is_enabled(false), bond(new bond::Bond{topics::STATE_MACHINE_BOND + this->name, bond_id}){
             bond->start();
         }
 
-        status::status(std::string name, const std::string& bond_id, bool is_enabled) :
-                name(std::move(name)), is_enabled(is_enabled),
-                bond(new bond::Bond{topics::STATE_MACHINE_BOND + bond_id, bond_id}){
+        status::status(std::string name, const std::string& bond_id, bool is_enabled) : name(std::move(name)), is_enabled(is_enabled),
+                                                                                        bond(new bond::Bond{topics::STATE_MACHINE_BOND + this->name, bond_id}){
             bond->start();
         }
 
