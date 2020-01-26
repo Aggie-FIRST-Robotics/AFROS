@@ -1,10 +1,15 @@
 1) Follow format in launchfile.launch in order to add all of the nodes that you have created to the launchfile.
 2) Run echo $CMAKE_PREFIX_PATH and then copy launchfile.launch to that directory
 3) Edit start.sh and replace "/opt/ros/melodic/" in line 4 to wherever your $CMAKE_PREFIX_PATH is
-4) Copy the test.service and test.timer files in the doc to /etc/systemd/system
-5) Edit test.service and change "/home/afros-jetson01/" in line 6 to your home directory
+4) Edit test.service and change "/home/afros-jetson01/" in line 6 to your home directory
+Either:
+5) Copy the test.service and test.timer files in the doc to /etc/systemd/system
 6) Run systemctl daemon-reload
 7) Run systemctl enable test.timer
 8) Reboot System
+
+Or run
+
+5) ./shell.sh in this folder
 
 
