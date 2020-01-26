@@ -1,0 +1,6 @@
+<launch>
+
+<node pkg="afros_core" type="connection_commander_node" name="connection_commander_node" respawn="true" />
+<node pkg="afros_core" type="state_machine_commander_node" name="state_machine_commander_node" respawn="true" />
+
+</launch>

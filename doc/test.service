@@ -1,0 +1,9 @@
+[Unit]
+Description = AFROS
+
+[Service]
+Type = simple
+ExecStart = /home/afros-jetson01/AFROS/catkin_ws/start.sh #Change "/home/afros-jetson01/" to home directory
+
+[Install]
+WantedBy=multi-user.target
