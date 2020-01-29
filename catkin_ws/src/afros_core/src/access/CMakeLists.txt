@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 2.8.3)
 
 set(
         ${PROJECT_NAME}_access_lib_src
-        access.cpp
+        publication_access.cpp
+        subscription_access.cpp
 )
 
 add_library(${PROJECT_NAME}_access_lib STATIC ${${PROJECT_NAME}_access_lib_src})

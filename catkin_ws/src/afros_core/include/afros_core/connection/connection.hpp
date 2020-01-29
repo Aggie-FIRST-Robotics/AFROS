@@ -44,7 +44,7 @@ namespace afros_core{
         explicit internal_subscription(subscription& sub);
     };
 
-    struct publisher{
+    struct publication{
         std::string name;
         boost::function<void(const afros_core::raw_data&)> publish_function;
     };
@@ -59,14 +59,14 @@ namespace afros_core{
         std::string node_name;
 
         std::vector<subscription> subscriptions;
-        std::vector<publisher> publishers;
+        std::vector<publication> publishers;
 
         std::string generate_unique_id();
         void broadcast_bond_id(ros::NodeHandle& node, bond::Bond& bond, std::string& bond_id);
 
     protected:
         error_val<nullptr_t, connection_error> add_subscription(const subscription& sub);
-        error_val<nullptr_t, connection_error> add_publisher(const publisher& pub);
+        error_val<nullptr_t, connection_error> add_publisher(const publication& pub);
 
         error_val<nullptr_t, connection_error> set_name(const std::string& name);
 

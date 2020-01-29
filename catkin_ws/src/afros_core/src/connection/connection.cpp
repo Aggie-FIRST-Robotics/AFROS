@@ -162,7 +162,7 @@ namespace afros_core{
         return error_val<nullptr_t, connection_error>{};
     }
 
-    error_val<nullptr_t, connection_error> connection::add_publisher(const publisher& pub){
+    error_val<nullptr_t, connection_error> connection::add_publisher(const publication& pub){
         if(started){
             return error_val<nullptr_t, connection_error>{ALREADY_STARTED, false};
         }

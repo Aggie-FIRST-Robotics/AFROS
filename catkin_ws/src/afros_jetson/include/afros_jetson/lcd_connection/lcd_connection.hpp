@@ -7,16 +7,20 @@
 #include "afros_jetson/lcd/i2c_lcd_device.hpp"
 
 namespace afros_jetson{
-    class lcd_data : public afros_core::codeable{
+    namespace lcd_con{
+        constexpr const char* LCD_PUBLISHER_NAME = "lcd";
+        constexpr const char* LCD_SUBSCRIBER_NAME = "lcd_current";
+    }
+    class lcd_internal_data : public afros_core::codeable{
         boost::array<boost::array<uint8_t, 20>, 4> lines;
         bool changed;
 
         void decode_private(const afros_core::raw_data& data);
 
     public:
-        lcd_data();
-        explicit lcd_data(const boost::array<std::string, 4>& data);
-        explicit lcd_data(const afros_core::raw_data& data);
+        lcd_internal_data();
+        explicit lcd_internal_data(const boost::array<std::string, 4>& data);
+        explicit lcd_internal_data(const afros_core::raw_data& data);
 
         void decode(const afros_core::raw_data& data) override;
         afros_core::raw_data encode() override;
@@ -30,7 +34,7 @@ namespace afros_jetson{
 
     class lcd_connection : public afros_core::connection{
         i2c_lcd_device lcd;
-        lcd_data data;
+        lcd_internal_data data;
         ros::SteadyTimer lcd_timer;
 
     public:

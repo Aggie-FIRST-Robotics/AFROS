@@ -1,4 +1,0 @@
-#ifndef AFROS_ACCESS_HPP
-#define AFROS_ACCESS_HPP
-
-#endif //AFROS_ACCESS_HPP
