@@ -83,10 +83,11 @@ afros_core::raw_data afros_jetson::lcd_internal_data::encode(){
 boost::array<std::string, 4> afros_jetson::lcd_internal_data::as_strings(){
     boost::array<std::string, 4> out{};
     for(uint8_t x = 0; x < 4; ++x){
-        char add[20];
+        char add[21];
         for(uint8_t y = 0; y < 20; y++){
-            add[y] = lines.at(x).at(y);
+            add[y] = lines.at(x).at(y) == 0 ? ' ' : lines.at(x).at(y);
         }
+        add[20] = '\0';
         out.at(x) = std::string{add};
     }
     return out;

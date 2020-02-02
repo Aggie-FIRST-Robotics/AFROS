@@ -17,7 +17,7 @@ int main(int argc, char** argv){
         }
         std::cout << std::endl;
     }};
-    afros_jetson::lcd_subscription_access sub_access{node, NODE_ID, 1, &callback};
+//    afros_jetson::lcd_subscription_access sub_access{node, NODE_ID, 1, &callback};
 
     boost::function<void(const ros::SteadyTimerEvent&)> timer_callback{[&pub_access](const ros::SteadyTimerEvent& event) -> void{
         afros_jetson::lcd_data out{};
@@ -31,7 +31,7 @@ int main(int argc, char** argv){
             out.at(0).at(x) = sec_str.at(x);
         }
         for(size_t x = 0; x < std::min(nsec_str.size(), afros_jetson::lcd_data::value_type::size()); ++x){
-            out.at(0).at(1) = nsec_str.at(x);
+            out.at(1).at(x) = nsec_str.at(x);
         }
         ROS_INFO("Setting time to %u : %u", sec, nsec);
         pub_access.publish(out);

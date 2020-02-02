@@ -10,7 +10,7 @@ static afros_jetson::i2c_lcd_device* lcd_device_ptr = nullptr;
 int main(int argc, char** argv){
     using namespace afros_jetson;
     ros::NodeHandle node = afros_core::init_ros(argc, argv, LCD_NODE_NAME);
-    lcd_connection connection{0, 0x27, node, 10, LCD_NODE_NAME};
+    lcd_connection connection{0, 0x27, node, 0.5, LCD_NODE_NAME};
 
     boost::array<std::string, 4> initial_text{};
     initial_text.at(1) = " Welcome to AFROS!! ";
